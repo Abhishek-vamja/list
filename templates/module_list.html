@@ -29,8 +29,10 @@
             transition: all 0.3s;
         }
         .module-link:hover {
-            background: #007bff;
-            color: white;
+            background: transparent !important;
+            color: #007bff !important;
+            box-shadow: 0px 4px 10px rgba(0, 123, 255, 0.3);
+            transform: translateY(-2px);
         }
         .module-card-container {
             margin-bottom: 15px;
@@ -64,10 +66,10 @@
     </style>
 </head>
 <body>
-    <div class="mobile-toggle">☰ Open Modules</div>
+    <!-- <div class="mobile-toggle">☰ Open Modules</div> -->
     <div class="container-fluid">
         <div class="row">
-            <nav class="col-md-3 sidebar">
+            <!-- <nav class="col-md-3 sidebar">
                 <h4 class="mb-3">Available Modules</h4>
                 <button class="btn btn-danger btn-sm d-md-none mb-3 close-sidebar">Close</button>
                 <ul class="list-group" id="module-list">
@@ -76,27 +78,29 @@
                             <a href="#" class="module-link" data-id="{{ module.id }}">{{ module.module_name }}</a>
                         </li>
                     {% endfor %}
-                </ul>
+                </ul>                
 
-                {% if user.is_authenticated %}
-                    <button class="btn btn-primary mt-3" data-bs-toggle="modal" data-bs-target="#addModuleModal">Add Module</button>
-                {% endif %}
-
-            </nav>
+            </nav> -->
 
             <main class="col-md-9 content">
                 <div id="module-details">
                     <p class="text-muted">Select a module to view details.</p>
+                    {% if user.is_authenticated %}
+                        <button class="btn btn-primary px-5 py-2 m-2" data-bs-toggle="modal" data-bs-target="#addModuleModal">
+                            <i class="fas fa-plus"></i> Add Module
+                        </button>
+                    {% endif %}
                     <div class="row" id="module-cards">
                         {% for module in modules %}
-                            <div class="col-sm-6 col-lg-4 module-card-container" data-id="{{ module.id }}">
-                                <div class="card shadow-sm">
-                                    <div class="card-body">
-                                        <h5 class="card-title">{{ module.module_name }}</h5>
-                                        <p class="card-text">Description here...</p>
-                                        <a href="#" class="module-link" data-id="{{ module.id }}">Details</a>
+                        <div class="col-sm-6 col-lg-4 module-card-container" data-id="{{ module.id }}">
+                            <div class="card shadow-sm">
+                                    <a href="#" class="module-link" data-id="{{ module.id }}">
+                                        <div class="card-body">
+                                            <h5 class="card-title">{{ module.module_name }}</h5>
+                                            {% comment %} <p class="card-text">Description here...</p> {% endcomment %}
+                                        </div>
+                                    </a>
                                     </div>
-                                </div>
                             </div>
                         {% endfor %}
                     </div>
