@@ -22,9 +22,11 @@
   <thead class="table-dark">
     <tr>
       {% for field in module.module_fields.keys %}
-      <th>{{ field }}</th>
+      <th>{{ field|title }}</th>
       {% endfor %}
-      <th>Actions</th>
+      {% if user.is_authenticated %}
+        <th>Actions</th>
+      {% endif %}
     </tr>
   </thead>
   <tbody>
@@ -42,20 +44,22 @@
         {% else %} {{ record.values|get:field }} {% endif %}
       </td>
       {% endfor %}
-      <td>
-        <button
-          class="btn btn-sm btn-danger delete-btn"
-          data-id="{{ record.id }}"
-        >
-          Delete
-        </button>
-        <button
-          class="btn btn-sm btn-success save-btn d-none"
-          data-id="{{ record.id }}"
-        >
-          Save
-        </button>
-      </td>
+      {% if user.is_authenticated %}
+        <td>
+          <button
+            class="btn btn-sm btn-danger delete-btn"
+            data-id="{{ record.id }}"
+          >
+            Delete
+          </button>
+          <button
+            class="btn btn-sm btn-success save-btn d-none"
+            data-id="{{ record.id }}"
+          >
+            Save
+          </button>
+        </td>
+      {% endif %}
     </tr>
     {% endfor %}
   </tbody>
@@ -65,7 +69,9 @@
 {% endif %}
 
 <!-- Add Record Button -->
-<button class="btn btn-success mt-3" id="add-record-btn">Add Record</button>
+{% if user.is_authenticated %}
+  <button class="btn btn-success mt-3" id="add-record-btn">Add Record</button>
+{% endif %}
 
 <div class="modal fade" id="recordModal" tabindex="-1" aria-labelledby="recordModalLabel" aria-hidden="true">
     <div class="modal-dialog">
