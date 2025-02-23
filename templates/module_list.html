@@ -8,9 +8,10 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
         .sidebar {
-            height: 100vh;
-            overflow-y: auto;
             background: #f8f9fa;
             padding: 15px;
             border-right: 2px solid #ddd;
@@ -25,18 +26,50 @@
             text-decoration: none;
             color: #333;
             border-radius: 5px;
+            transition: all 0.3s;
         }
         .module-link:hover {
             background: #007bff;
             color: white;
         }
+        .module-card-container {
+            margin-bottom: 15px;
+        }
+        .mobile-toggle {
+            display: none;
+            background: #007bff;
+            color: white;
+            padding: 10px;
+            text-align: center;
+            cursor: pointer;
+        }
+        @media (max-width: 768px) {
+            .sidebar {
+                display: none;
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 75%;
+                height: 100vh;
+                overflow-y: auto;
+                background: white;
+                z-index: 1050;
+                padding: 20px;
+                box-shadow: 2px 0 5px rgba(0,0,0,0.2);
+            }
+            .mobile-toggle {
+                display: block;
+            }
+        }
     </style>
 </head>
 <body>
+    <div class="mobile-toggle">☰ Open Modules</div>
     <div class="container-fluid">
         <div class="row">
             <nav class="col-md-3 sidebar">
                 <h4 class="mb-3">Available Modules</h4>
+                <button class="btn btn-danger btn-sm d-md-none mb-3 close-sidebar">Close</button>
                 <ul class="list-group" id="module-list">
                     {% for module in modules %}
                         <li class="list-group-item">
@@ -52,11 +85,11 @@
                     <p class="text-muted">Select a module to view details.</p>
                     <div class="row" id="module-cards">
                         {% for module in modules %}
-                            <div class="col-sm-6 module-card-container" data-id="{{ module.id }}">
-                                <div class="card">
+                            <div class="col-sm-6 col-lg-4 module-card-container" data-id="{{ module.id }}">
+                                <div class="card shadow-sm">
                                     <div class="card-body">
                                         <h5 class="card-title">{{ module.module_name }}</h5>
-                                        <p class="card-text">With supporting text below as a natural lead-in to additional content.</p>
+                                        <p class="card-text">Description here...</p>
                                         <a href="#" class="module-link" data-id="{{ module.id }}">Details</a>
                                     </div>
                                 </div>
@@ -100,7 +133,6 @@
             $(document).on("click", ".module-link", function(e) {
                 e.preventDefault();
                 let moduleId = $(this).data("id");
-                
                 $.ajax({
                     url: "/module/" + moduleId + "/ajax/",
                     type: "GET",
@@ -117,10 +149,8 @@
             $("#saveModule").click(function() {
                 let moduleName = $("#moduleName").val().trim();
                 let moduleFields = $("#moduleFields").val().trim();
-                
                 try {
                     let parsedFields = JSON.parse(moduleFields);
-                    
                     $.ajax({
                         url: "/module/add/",
                         type: "POST",
@@ -131,21 +161,7 @@
                         }),
                         success: function(response) {
                             Swal.fire("Success", "Module added successfully!", "success");
-                            
-                            $("#module-list").append(`<li class='list-group-item'><a href='#' class='module-link' data-id='${response.id}'>${response.module_name}</a></li>`);
-                            $("#module-cards").append(`
-                                <div class="col-sm-6 module-card-container" data-id="${response.id}">
-                                    <div class="card">
-                                        <div class="card-body">
-                                            <h5 class="card-title">${response.module_name}</h5>
-                                            <p class="card-text">With supporting text below as a natural lead-in to additional content.</p>
-                                            <a href="#" class="module-link" data-id="${response.id}">Details</a>
-                                        </div>
-                                    </div>
-                                </div>`);
-                            
-                            $("#addModuleForm")[0].reset();
-                            $("#addModuleModal").modal("hide");
+                            location.reload();
                         },
                         error: function(xhr) {
                             Swal.fire("Error", "Failed to add module: " + xhr.responseText, "error");
@@ -154,6 +170,14 @@
                 } catch (error) {
                     Swal.fire("Error", "Invalid JSON format in Module Fields!", "error");
                 }
+            });
+            
+            $(".mobile-toggle").click(function() {
+                $(".sidebar").toggle();
+            });
+            
+            $(".close-sidebar").click(function() {
+                $(".sidebar").hide();
             });
         });
     </script>
