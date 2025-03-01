@@ -8,16 +8,15 @@
 
 <style>
   .background-logo {
-    position: absolute;
+    position: fixed;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    width: 200px;
-    opacity: 0.4;
-    z-index: 999; /* Ensure it stays behind the cards */
-    mix-blend-mode: multiply; /* Allow logo to be visible through elements */
-    pointer-events: none;
-  }
+    width: 200px; /* Adjust size as needed */
+    opacity: 0.4; /* Adjust transparency */
+    z-index: -1; /* Keeps it in the background */
+    pointer-events: none; /* Prevents interactions */
+} 
 </style>
 
 <!-- jQuery (Ensure it's loaded before using it in your script) -->
