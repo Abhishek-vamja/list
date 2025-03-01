@@ -26,8 +26,15 @@
         .module-card-container { margin-bottom: 15px; }
         .mobile-toggle { display: none; background: #007bff; color: white; padding: 10px; text-align: center; cursor: pointer; }
         .background-logo {
-            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            width: 200px; opacity: 0.4; z-index: -1; pointer-events: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 200px;
+            opacity: 0.4;
+            z-index: 999;
+            mix-blend-mode: multiply; /* Allow logo to be visible through elements */
+            pointer-events: none;
         }
         @media (max-width: 768px) {
             .sidebar {
