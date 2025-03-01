@@ -6,6 +6,19 @@
   rel="stylesheet"
 />
 
+<style>
+  .background-logo {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 200px; /* Adjust size as needed */
+    opacity: 0.4; /* Adjust transparency */
+    z-index: -1; /* Keeps it in the background */
+    pointer-events: none; /* Prevents interactions */
+} 
+</style>
+
 <!-- jQuery (Ensure it's loaded before using it in your script) -->
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
@@ -107,194 +120,116 @@
   </div>
 
 <script>
-    $(document).ready(function() {
-        let moduleId = "{{ module.id }}";
-    
-        // Handle making fields editable on click
-        $(document).on("click", ".editable", function() {
-            let currentText = $(this).text().trim();
-            let fieldName = $(this).data("field");
-    
-            if (!$(this).find("input, checkbox").length) {
-                $(this).html(`<input type="text" class="form-control inline-edit" value="${currentText}" data-field="${fieldName}">`);
-            }
-        });
-    
-        // Show Save Button when input changes
-        $(document).on("input", ".inline-edit", function() {
-            $(this).closest("tr").find(".save-btn").removeClass("d-none");
-        });
-    
-        $(document).on("change", ".record-checkbox", function() {
-            $(this).closest("tr").find(".save-btn").removeClass("d-none");
-        });
-    
-        // Save Edited Record via AJAX
-        $(document).on("click", ".save-btn", function() {
-            let row = $(this).closest("tr");
-            let recordId = row.data("id");
-            let updatedValues = {};
-    
-            row.find(".inline-edit").each(function() {
-                let field = $(this).data("field");
-                let value = $(this).val();
-                updatedValues[field] = value;
-            });
-    
-            row.find(".record-checkbox").each(function() {
-                let field = $(this).data("field");
-                updatedValues[field] = $(this).is(":checked");
-            });
-    
-            $.ajax({
-                url: "/module/" + moduleId + "/save/",
-                type: "POST",
-                data: {
-                    record_id: recordId,
-                    values: JSON.stringify(updatedValues),
-                    csrfmiddlewaretoken: "{{ csrf_token }}"
-                },
-                success: function(response) {
-                    Swal.fire({
-                        icon: "success",
-                        title: "Record Updated",
-                        text: response.message,
-                        timer: 1500,
-                        showConfirmButton: false
-                    });
-    
-                    $.each(updatedValues, function(field, value) {
-                        if (typeof value === "boolean") {
-                            row.find(`.record-checkbox[data-field="${field}"]`).prop("checked", value);
-                        } else {
-                            row.find(`[data-field="${field}"]`).html(value);
-                        }
-                    });
-    
-                    row.find(".save-btn").addClass("d-none");
-                },
-                error: function(xhr) {
-                    Swal.fire({
-                        icon: "error",
-                        title: "Error",
-                        text: "Failed to save record: " + xhr.responseText
-                    });
-                }
-            });
+  $(document).ready(function () {
+    let moduleId = "{{ module.id }}";
+
+    // Make fields editable on click
+    $(document).on("click", ".editable", function () {
+        let currentText = $(this).text().trim();
+        let fieldName = $(this).data("field");
+        if (!$(this).find("input, checkbox").length) {
+            $(this).html(`<input type="text" class="form-control inline-edit" value="${currentText}" data-field="${fieldName}">`);
+        }
+    });
+
+    // Show Save button on input change
+    $(document).on("input change", ".inline-edit, .record-checkbox", function () {
+        $(this).closest("tr").find(".save-btn").removeClass("d-none");
+    });
+
+    // Save edited record via AJAX
+    $(document).on("click", ".save-btn", function () {
+        let row = $(this).closest("tr");
+        let recordId = row.data("id");
+        let updatedValues = {};
+
+        row.find(".inline-edit").each(function () {
+            updatedValues[$(this).data("field")] = $(this).val();
         });
 
-        $(document).on("click", ".delete-btn", function() {
-            let row = $(this).closest("tr");
-            let recordId = $(this).data("id");
-            let moduleId = "{{ module.id }}"; // Ensure this is correctly set
-        
-            Swal.fire({
-                title: "Are you sure?",
-                text: "You won't be able to revert this!",
-                icon: "warning",
-                showCancelButton: true,
-                confirmButtonColor: "#d33",
-                cancelButtonColor: "#3085d6",
-                confirmButtonText: "Yes, delete it!"
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    $.ajax({
-                        url: `/module/${moduleId}/delete/${recordId}/`,  // FIXED URL
-                        type: "POST",
-                        data: {
-                            csrfmiddlewaretoken: "{{ csrf_token }}"
-                        },
-                        success: function(response) {
-                            Swal.fire({
-                                icon: "success",
-                                title: "Deleted!",
-                                text: response.message,
-                                timer: 1500,
-                                showConfirmButton: false
-                            });
-        
-                            // Remove the row from the table
-                            row.remove();
-                        },
-                        error: function(xhr) {
-                            Swal.fire({
-                                icon: "error",
-                                title: "Error",
-                                text: "Failed to delete record: " + xhr.responseText
-                            });
-                        }
-                    });
-                }
-            });
+        row.find(".record-checkbox").each(function () {
+            updatedValues[$(this).data("field")] = $(this).is(":checked");
         });
-    
-        // Handle Add Record Button Click
-        $("#add-record-btn").click(function() {
-            let form = $("#recordForm")[0];
-            if (form) {
-                form.reset();  // Reset form fields
-            }
-            $("#recordModalLabel").text("Add New Record");
-            let modal = new bootstrap.Modal(document.getElementById("recordModal"));
-            modal.show();
-        });
-    
-        // Handle Saving New Record
-        $("#save-new-record").click(function() {
-            let formData = {};
-            $("#recordForm").find("input[name]").each(function() {
-                formData[$(this).attr("name")] = $(this).val();
+
+        $.post(`/module/${moduleId}/save/`, {
+            record_id: recordId,
+            values: JSON.stringify(updatedValues),
+            csrfmiddlewaretoken: "{{ csrf_token }}"
+        }).done(function (response) {
+            Swal.fire({ icon: "success", title: "Record Updated", text: response.message, timer: 1500, showConfirmButton: false });
+            $.each(updatedValues, function (field, value) {
+                let cell = row.find(`[data-field="${field}"]`);
+                value === true || value === false ? cell.find(".record-checkbox").prop("checked", value) : cell.html(value);
             });
-    
-            $.ajax({
-                url: "/module/" + moduleId + "/save/",
-                type: "POST",
-                data: {
-                    values: JSON.stringify(formData),
-                    csrfmiddlewaretoken: "{{ csrf_token }}"
-                },
-                success: function(response) {
-                    Swal.fire({
-                        icon: "success",
-                        title: "Record Added",
-                        text: response.message,
-                        timer: 1500,
-                        showConfirmButton: false
-                    });
-    
-                    let newRow = `<tr data-id="${response.id}">`;
-    
-                    {% for field, field_type in module.module_fields.items %}
-                        if ("{{ field_type }}" === "checkbox") {
-                            newRow += `<td class="editable" data-field="{{ field }}">
-                                <input type="checkbox" class="record-checkbox" data-field="{{ field }}" ${formData["{{ field }}"] ? "checked" : ""}>
-                            </td>`;
-                        } else {
-                            newRow += `<td class="editable" data-field="{{ field }}">${formData["{{ field }}"] || ""}</td>`;
-                        }
-                    {% endfor %}
-    
-                    newRow += `
-                        <td>
-                            <button class="btn btn-sm btn-danger delete-btn" data-id="${response.id}">Delete</button>
-                            <button class="btn btn-sm btn-success save-btn d-none" data-id="${response.id}">Save</button>
-                        </td>
-                    </tr>`;
-    
-                    $("table tbody").append(newRow);
-    
-                    let modal = bootstrap.Modal.getInstance(document.getElementById("recordModal"));
-                    modal.hide();
-                },
-                error: function(xhr) {
-                    Swal.fire({
-                        icon: "error",
-                        title: "Error",
-                        text: "Failed to save record: " + xhr.responseText
-                    });
-                }
-            });
+            row.find(".save-btn").addClass("d-none");
+        }).fail(function (xhr) {
+            Swal.fire({ icon: "error", title: "Error", text: "Failed to save record: " + xhr.responseText });
         });
     });
-    
+
+    // Delete record with confirmation
+    $(document).on("click", ".delete-btn", function () {
+        let row = $(this).closest("tr");
+        let recordId = $(this).data("id");
+        Swal.fire({
+            title: "Are you sure?",
+            text: "You won't be able to revert this!",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#d33",
+            cancelButtonColor: "#3085d6",
+            confirmButtonText: "Yes, delete it!"
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.post(`/module/${moduleId}/delete/${recordId}/`, { csrfmiddlewaretoken: "{{ csrf_token }}" })
+                    .done(() => {
+                        Swal.fire({ icon: "success", title: "Deleted!", text: "Record removed.", timer: 1500, showConfirmButton: false });
+                        row.remove();
+                    })
+                    .fail((xhr) => {
+                        Swal.fire({ icon: "error", title: "Error", text: "Failed to delete record: " + xhr.responseText });
+                    });
+            }
+        });
+    });
+
+    // Open Add Record Modal
+    $("#add-record-btn").click(function () {
+        $("#recordForm")[0].reset();
+        new bootstrap.Modal(document.getElementById("recordModal")).show();
+    });
+
+    // Save new record
+    $("#save-new-record").click(function () {
+        let formData = {};
+        $("#recordForm").find("input[name]").each(function () {
+            formData[$(this).attr("name")] = $(this).is(":checkbox") ? $(this).is(":checked") : $(this).val();
+        });
+
+        $.post(`/module/${moduleId}/save/`, {
+            values: JSON.stringify(formData),
+            csrfmiddlewaretoken: "{{ csrf_token }}"
+        }).done(function (response) {
+            Swal.fire({ icon: "success", title: "Record Added", text: response.message, timer: 1500, showConfirmButton: false });
+            let newRow = `<tr data-id="${response.id}">`;
+            {% for field, field_type in module.module_fields.items %}
+                if ("{{ field_type }}" === "checkbox") {
+                    newRow += `<td class="editable" data-field="{{ field }}">
+                        <input type="checkbox" class="record-checkbox" data-field="{{ field }}" ${formData["{{ field }}"] ? "checked" : ""}>
+                    </td>`;
+                } else {
+                    newRow += `<td class="editable" data-field="{{ field }}">${formData["{{ field }}"] || ""}</td>`;
+                }
+            {% endfor %}
+            newRow += `<td>
+                    <button class="btn btn-sm btn-danger delete-btn" data-id="${response.id}">Delete</button>
+                    <button class="btn btn-sm btn-success save-btn d-none" data-id="${response.id}">Save</button>
+                </td></tr>`;
+            $("table tbody").append(newRow);
+            bootstrap.Modal.getInstance(document.getElementById("recordModal")).hide();
+        }).fail(function (xhr) {
+            Swal.fire({ icon: "error", title: "Error", text: "Failed to save record: " + xhr.responseText });
+        });
+    });
+});
 </script>
